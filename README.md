@@ -13,6 +13,9 @@ Dataset used for testing the MMCA module for time series classification is the B
 - Number of Dimensions: 4
 
 The 4 dimensions were split into 2 datasets, each of 2 elements, simulating 2 different modalities for the input channels of MMCA network. 
+
+Data loading is done following the standard using aeon: [(notebook)](https://github.com/aeon-toolkit/aeon/blob/main/examples/datasets/data_loading.ipynb)
+
 # 
 
 ### Install Env:
