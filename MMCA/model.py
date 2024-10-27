@@ -62,7 +62,7 @@ class MMCA(torch.nn.Module):
         #3 process (?)
 
         #4. Concatenate the outputs from all channels
-        concatenated_x = torch.cat((m1_self_attn_x, m1_cross_attn_x, m2_self_attn_x, m1_cross_attn_x)
+        concatenated_x = torch.cat([m1_self_attn_x, m1_cross_attn_x, m2_self_attn_x, m1_cross_attn_x], dim = 1)
 
         #5. process (?)
 

@@ -37,3 +37,5 @@ Dependencies:
 #
 
 ### Run:
+
+1. add positional encoding into the time series
