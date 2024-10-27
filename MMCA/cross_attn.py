@@ -100,7 +100,7 @@ class cross_attn_channel(torch.nn.Module):
     def __init__(self, 
                  dim_m1: int, 
                  dim_m2: int, 
-                 pffn_dim: int
+                 pffn_dim: int,
                  heads: Optional[int], 
                  seq_len: int, 
                  dropout: float = 0.0):

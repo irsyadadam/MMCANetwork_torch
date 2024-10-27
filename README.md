@@ -36,6 +36,18 @@ Dependencies:
 
 #
 
-### Run:
+### Model Architecture:
 
-1. add positional encoding into the time series
+    modality1 --> self_attention --> x     | 
+            | 
+            |--> cross_attention --> x     | 
+                                            --- (concat) --> (avg time series) --> classifier --> pred 
+            |--> cross_attention --> x     | 
+            | 
+    modality2 --> self_attention --> x     | 
+
+Remarks: 
+- self attention and cross attention encoders implemented from "Attention is all you need"
+- positional encoders implemented before attn modules
+- either concat final embeddings
+- avg time series or create class token??
