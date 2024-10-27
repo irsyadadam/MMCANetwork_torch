@@ -33,11 +33,13 @@ class cross_attn_block(torch.nn.Module):
                  dim: int, 
                  heads: int, 
                  dropout: float, 
-                 seq_length: int):
+                 seq_length: int
+                 add_positional: Optional[bool]):
 
         super(cross_attn_block, self).__init__()
 
         #not learnable, output is x + positional
+        self.add_positional = add_positional
         self.positional_encoding = PositionalEncoding(dim, dropout, seq_length)
 
         #learnable
@@ -52,8 +54,9 @@ class cross_attn_block(torch.nn.Module):
                 m2: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = None, 
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         
-        m1_x = self.positional_encoding(m1)
-        m2_x = self.positional_encoding(m2)
+        if self.add_positional:
+            m1_x = self.positional_encoding(m1)
+            m2_x = self.positional_encoding(m2)
 
         m1_k = self._to_key(m1_x)
         m1_v = self._to_query(m1_x)

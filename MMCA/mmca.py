@@ -47,8 +47,8 @@ class MMCA(torch.nn.Module):
         self.classifier = None
 
     def forward(self, 
-                time_series_1: Union[torch.Tensor, torch.OptPairTensor],
-                time_series_2: Union[torch.Tensor, torch.OptPairTensor]) -> torch.Tensor:
+                time_series_1: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]):,
+                time_series_2: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]]) -> torch.Tensor:
         
         
         #1. Run through self_attn channel
