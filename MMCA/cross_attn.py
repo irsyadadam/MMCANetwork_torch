@@ -11,7 +11,11 @@ from pathlib import Path
 from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, TypeVar, Union
 
 import torch
-from positional_encoder import PositionalEncoding
+
+#import file
+from MMCA.positional_encoder import PositionalEncoding
+from MMCA.position_wise_ffn import position_wise_ffn
+
 
 class cross_attn_block(torch.nn.Module):
     r"""
@@ -33,14 +37,15 @@ class cross_attn_block(torch.nn.Module):
                  dim: int, 
                  heads: int, 
                  dropout: float, 
-                 seq_length: int
-                 add_positional: Optional[bool]):
+                 seq_length: int,
+                 add_positional: Optional[bool] = False):
 
         super(cross_attn_block, self).__init__()
 
         #not learnable, output is x + positional
         self.add_positional = add_positional
-        self.positional_encoding = PositionalEncoding(dim, dropout, seq_length)
+        if self.add_positional:
+            self.positional_encoding = PositionalEncoding(dim, dropout, seq_length)
 
         #learnable
         self._to_key = torch.nn.Linear(dim, dim)
@@ -50,13 +55,13 @@ class cross_attn_block(torch.nn.Module):
         self.attn = torch.nn.MultiheadAttention(embed_dim = dim, num_heads = heads, dropout = dropout)
 
     def forward(self, 
-                m1: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = None, 
-                m2: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = None, 
+                m1_x: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = None, 
+                m2_x: Union[torch.Tensor, Tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = None, 
                 mask: Optional[torch.Tensor] = None) -> torch.Tensor:
         
         if self.add_positional:
-            m1_x = self.positional_encoding(m1)
-            m2_x = self.positional_encoding(m2)
+            m1_x = self.positional_encoding(m1_x)
+            m2_x = self.positional_encoding(m2_x)
 
         m1_k = self._to_key(m1_x)
         m1_v = self._to_query(m1_x)
@@ -68,31 +73,6 @@ class cross_attn_block(torch.nn.Module):
         return cross_x
 
 
-class position_wise_ffn(torch.nn.Module):
-    r"""
-    Position-wise feed-forward network with a RELU activation - essentially contracts output, and squeezes it back to the same space
-
-    ARGS:
-        dim: dimension of the embeddings
-        hidden_dim: dimension of the inflated hidden layer in feed-forward network
-    
-    """
-
-    def __init__(self, 
-                 dim: int, 
-                 hidden_dim: int, 
-                 dropout: float = 0.0):
-        super(position_wise_ffn, self).__init__()
-
-        self.ffn_1 = torch.nn.Linear(dim, hidden_dim)
-        self.ffn_2 = torch.nn.Linear(hidden_dim, dim)
-
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        
-        x = self.ffn_1(x).relu()
-        x = self.ffn_2(x)
-
-        return x
 
 class cross_attn_channel(torch.nn.Module):
     r"""

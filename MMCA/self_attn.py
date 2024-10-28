@@ -12,8 +12,10 @@ from typing import Any, Callable, Dict, List, Literal, Optional, Tuple, Type, Ty
 
 import torch
 
-import torch
-from typing import Optional, Union, Tuple
+#import file
+from MMCA.positional_encoder import PositionalEncoding
+from MMCA.position_wise_ffn import position_wise_ffn
+
 
 class self_attn_block(torch.nn.Module):
     r"""
@@ -42,7 +44,8 @@ class self_attn_block(torch.nn.Module):
         super(self_attn_block, self).__init__()
 
         self.add_positional = add_positional
-        self.positional_encoding = PositionalEncoding(dim, dropout, seq_length)
+        if self.add_positional:
+            self.positional_encoding = PositionalEncoding(dim, dropout, seq_length)
 
         # learnable linear projections 
         self._to_key = torch.nn.Linear(dim, dim)
