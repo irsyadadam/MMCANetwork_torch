@@ -65,22 +65,23 @@ if __name__ == '__main__':
                                 cross_attn_layers = 2,
                                 cross_attn_heads = 2,
                                 dropout = 0.1,
-                                add_positional = True                            
+                                add_positional = False                            
                                 )
+    epoch_num = 400
 
     criterion = nn.CrossEntropyLoss().to(device)
-    optimizer = torch.optim.SGD(mmca_model.parameters(), 0.001, momentum=0.9)
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, 0.001, 100, 50)
-
+    optimizer = torch.optim.AdamW(mmca_model.parameters(), 0.001, weight_decay=0.01)
+    #scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max = epoch_num, eta_min = 0.0001)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer = optimizer, patience = 3) 
     mmca_model = mmca_model.to(device)
 
     m1_train_x = torch.Tensor(m1_train_x).to(device)
     m2_train_x = torch.Tensor(m2_train_x).to(device)
-    train_y = torch.Tensor(train_y).to(device)
+    train_y = torch.LongTensor(train_y).to(device)
 
     m1_test_x = torch.Tensor(m1_test_x).to(device)
     m2_test_x = torch.Tensor(m2_test_x).to(device)
-    test_y = torch.Tensor(test_y).to(device)
+    test_y = torch.LongTensor(test_y).to(device)
 
 
     from sklearn.metrics import accuracy_score, roc_auc_score, precision_score, f1_score, recall_score
@@ -88,14 +89,12 @@ if __name__ == '__main__':
     def acc_metrics(probs, preds, y_true):
 
         accuracy = accuracy_score(y_true = y_true, y_pred = preds)
-        precision = precision_score(y_true = y_true, y_pred = preds, average ='macro')
-        recall = recall_score(y_true = y_true, y_pred = preds, average ='macro')
-        f1 = f1_score(y_true = y_true, y_pred = preds, average ='macro')
-        auc = roc_auc_score(y_true = y_true, y_score = probs, average ='macro')
-
-        print(f"Accuracy: {accuracy: .2f}, AUC: {auc: .2f}, Precision: {precision: .2f}, Recall: {recall: .2f}, F1: {f1: .2f}")
-
-    epoch_num = 100
+        precision = precision_score(y_true = y_true, y_pred = preds, average ='micro')
+        recall = recall_score(y_true = y_true, y_pred = preds, average ='micro')
+        f1 = f1_score(y_true = y_true, y_pred = preds, average ='micro')
+        auc = roc_auc_score(y_true = y_true, y_score = probs, average ='micro')
+        print(f"Accuracy: {accuracy: .2f}, AUC: {auc: .2f}, Precision: {precision: .2f}, Recall: {recall: .2f}, F1: {f1: .2f}") 
+        return auc, accuracy
 
     print("--------------Train Step----------------\n \n")
 
@@ -106,11 +105,12 @@ if __name__ == '__main__':
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler.step()
-
         print(f'Epoch [{i+1}/{epoch_num}], Loss: {loss.item()}')
-        preds = torch.max(probs, 1)
+       	preds_logits, preds = torch.max(probs, 1)
 
-        acc_metrics(probs.detach().cpu().numpy(), preds.detach().cpu().numpy(), train_y.detach().cpu().numpy())
+        print(probs[:5], train_y[:5])
+        auc, acc = acc_metrics(preds_logits.detach().cpu().numpy(), preds.detach().cpu().numpy(), train_y.detach().cpu().numpy())
     
+
+        scheduler.step(metrics = loss)
     
