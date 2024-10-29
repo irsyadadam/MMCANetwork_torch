@@ -115,7 +115,7 @@ class multi_modal_cross_attention(torch.nn.Module):
         
         #4. Concatenate the outputs from all channels
         # print(f'concatenating channels')
-        concatenated_x = torch.cat([m1_self_attn_x, m1_cross_attn_x, m2_self_attn_x, m1_cross_attn_x], dim = -1)
+        concatenated_x = torch.cat([m1_self_attn_x, m1_cross_attn_x, m2_self_attn_x, m2_cross_attn_x], dim = -1)
         # print(f'done. concatenated_x has shape {concatenated_x.shape}')
         
         #5. avg pooling
